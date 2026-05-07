@@ -5,7 +5,6 @@
 #include <glog/logging.h>
 #include "joystick_controller/joystick_controller_node.hpp"
 
-std::atomic<bool> running(true);
 
 int main(int argc, char ** argv)
 {
