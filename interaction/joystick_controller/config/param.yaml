@@ -1,0 +1,12 @@
+joystick_controller:
+  # uart
+  uart_interface: /dev/input/js0
+
+  # topic
+  cmd_vel_topic: command/cmd_twist
+  cmd_key_topic: command/cmd_key
+
+  # speed limit
+  max_vx: 1.0
+  max_vy: 1.0
+  max_w: 3.0
