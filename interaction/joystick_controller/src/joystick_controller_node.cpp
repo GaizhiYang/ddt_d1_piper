@@ -163,23 +163,22 @@ void JoyStickControllerNode::publish_process_()
 
 void JoyStickControllerNode::axis_handle_(int number, signed short value) 
 {
-  // LOG(INFO) << "axis handle: " << "number = " << number << " value = " << value;
   // Only Handle x y yaw, using left hand axis
   double diff = 0.0;
   // Handle y
   if (number == 0) {
     diff = value - JOY_AXIS_H_ZERO_VALUE;
-    normalized_cmd_[1] = params_.max_vx * (diff  / JOY_AXIS_MAX_VALUE);
+    normalized_cmd_[1] = -1.0 *params_.max_vy * (diff  / JOY_AXIS_MAX_VALUE);
   }
   // Handle x
   if (number == 1) {
     diff = value - JOY_AXIS_V_ZERO_VALUE;
-    normalized_cmd_[0] = -1.0 * params_.max_vy * (diff / JOY_AXIS_MAX_VALUE);
+    normalized_cmd_[0] = -1.0 * params_.max_vx * (diff / JOY_AXIS_MAX_VALUE);
   }
   // Handle yaw
   if (number == 2) {
     diff = value - JOY_AXIS_H_ZERO_VALUE;
-    normalized_cmd_[2] = diff = params_.max_w * (diff / JOY_AXIS_MAX_VALUE);
+    normalized_cmd_[2] = -1.0 * params_.max_w * (diff / JOY_AXIS_MAX_VALUE);
   }
   // LOG(INFO) << "normalized cmd = " << normalized_cmd_[0] << " " << normalized_cmd_[1] << " " << normalized_cmd_[2];
 
