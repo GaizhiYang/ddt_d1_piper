@@ -230,7 +230,7 @@ void FSMState_RL::update_observations()
     } else if (rl_params_->observations_name[i] == "dof_pos") {
       observations.push_back(pos * rl_params_->dof_pos_scale);
     } else if (rl_params_->observations_name[i] == "dof_pos_nwp") {
-      std::vector<int> indices = {0, 1, 2, 4, 5, 6};
+      std::vector<int> indices = {0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14};
       DVec<tensor_element_t> pos_sliced(indices.size());
       for (size_t j = 0; j < indices.size(); ++j) {
         pos_sliced[j] = pos[indices[j]];
@@ -238,6 +238,13 @@ void FSMState_RL::update_observations()
       observations.push_back(pos_sliced * static_cast<tensor_element_t>(rl_params_->dof_pos_scale));
     } else if (rl_params_->observations_name[i] == "dof_vel") {
       observations.push_back(vel * rl_params_->dof_vel_scale);
+    } else if (rl_params_->observations_name[i] == "dof_vel_nwp") {
+      std::vector<int> indices = {0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14};
+      DVec<tensor_element_t> vel_sliced(indices.size());
+      for (size_t j = 0; j < indices.size(); ++j) {
+        vel_sliced[j] = vel[indices[j]];
+      }
+      observations.push_back(vel_sliced * static_cast<tensor_element_t>(rl_params_->dof_vel_scale));
     } else if (rl_params_->observations_name[i] == "last_actions") {
       observations.push_back(obs_.last_actions);
     } else if (rl_params_->observations_name[i] == "phases") {
@@ -275,10 +282,8 @@ void FSMState_RL::update_forward()
     if (!stop_update_) {
       update_observations();
       std::vector<std::vector<tensor_element_t>> input_datas;
-      std::vector<tensor_element_t> input_data_1 = eigenToVector(obs_vec_);
-      std::vector<tensor_element_t> input_data_2 = eigenToVector(obs_history_vec_);
-      input_datas.push_back(input_data_1);
-      input_datas.push_back(input_data_2);
+      std::vector<tensor_element_t> input_data = eigenToVector(obs_history_vec_);
+      input_datas.push_back(input_data);
       action_vec_ = vectorToEigen(inferrer_->computeActions(input_datas));
       obs_.last_actions = action_vec_;
       action_vec_ = reindex(action_vec_);
