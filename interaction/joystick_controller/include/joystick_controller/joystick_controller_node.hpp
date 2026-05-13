@@ -77,6 +77,6 @@ private:
   // Button Mapping
   ButtonMap button_mapping_ = {
     {0, "rl_0"}, {1, "rl_1"}, {2, "rl_2"}, {3, "rl_3"},
-    {5, "transform_up"}, {6, "transform_down"}, {4, "idle"}
+    {4, "transform_up"}, {5, "transform_down"}, {6, "idle"}
   };
 };
