@@ -30,6 +30,12 @@
   </asset>
 
   <worldbody>
+    <body name="payload_link" pos="0.0 0 1.0">
+      <geom type="box" size="0.1 0.1 0.1" class="visual" rgba="1 0 0 1"/>
+      <geom type="box" size="0.1 0.1 0.1" class="collision" mass="60.0"/>
+      <joint type="free"/>
+    </body>
+
     <body name="base_link" pos="0 0 0.8" childclass="d1">
       <inertial pos="0.0298675 0.000146849 -0.0146567" quat="0.00194962 0.703088 0.00143987 0.711099" mass="22.6528" diaginertia="1.04095 1.02354 0.194945"/>
       <site name="trunk_imu" size="0.01"/>
@@ -143,6 +149,11 @@
       </body>
     </body>
   </worldbody>
+
+  <equality>
+    <weld name="payload_attachment" body1="payload_link" body2="base_link" active="true" relpose="0 0 0 0 0 0 0" solimp="0.9 0.95 0.001" solref="0.02 1"/>
+  </equality>
+
   <actuator>
     <motor name="FL_hip" joint="FL_hip_joint" />
     <motor name="FL_thigh" joint="FL_thigh_joint" />
