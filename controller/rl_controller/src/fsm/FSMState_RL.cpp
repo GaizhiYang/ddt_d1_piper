@@ -230,12 +230,12 @@ void FSMState_RL::update_observations()
     } else if (rl_params_->observations_name[i] == "dof_pos") {
       observations.push_back(pos * rl_params_->dof_pos_scale);
     } else if (rl_params_->observations_name[i] == "dof_pos_nwp") {
-      std::vector<int> indices = {0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14};
+      std::vector<int> indices = {3, 7, 11, 15};
       DVec<tensor_element_t> pos_sliced(indices.size());
       for (size_t j = 0; j < indices.size(); ++j) {
-        pos_sliced[j] = pos[indices[j]];
+        pos[indices[j]] = 0.0;
       }
-      observations.push_back(pos_sliced * static_cast<tensor_element_t>(rl_params_->dof_pos_scale));
+      observations.push_back(pos * static_cast<tensor_element_t>(rl_params_->dof_pos_scale));
     } else if (rl_params_->observations_name[i] == "dof_vel") {
       observations.push_back(vel * rl_params_->dof_vel_scale);
     } else if (rl_params_->observations_name[i] == "dof_vel_nwp") {
