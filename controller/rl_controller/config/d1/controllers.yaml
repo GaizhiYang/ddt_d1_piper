@@ -102,7 +102,7 @@
         - "rl_60kg"
       
       rl_narrow_terrain:
-        policy_path: config/d1/flat_10_delay_dc.onnx
+        policy_path: config/d1/flat_yjy.onnx
         output_name: "actions"
         # env
         num_obs: 57
