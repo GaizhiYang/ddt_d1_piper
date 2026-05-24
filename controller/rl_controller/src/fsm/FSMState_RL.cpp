@@ -282,8 +282,10 @@ void FSMState_RL::update_forward()
     if (!stop_update_) {
       update_observations();
       std::vector<std::vector<tensor_element_t>> input_datas;
-      std::vector<tensor_element_t> input_data = eigenToVector(obs_history_vec_);
-      input_datas.push_back(input_data);
+      std::vector<tensor_element_t> input0 = eigenToVector(obs_vec_);
+      std::vector<tensor_element_t> input1 = eigenToVector(obs_history_vec_);
+      input_datas.push_back(input0);
+      input_datas.push_back(input1);
       action_vec_ = vectorToEigen(inferrer_->computeActions(input_datas));
       obs_.last_actions = action_vec_;
       action_vec_ = reindex(action_vec_);

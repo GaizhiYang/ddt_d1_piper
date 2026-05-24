@@ -98,16 +98,15 @@
         joint_kd: [8.0, 8.0, 8.0, 0.8, 8.0, 8.0, 8.0, 0.8, 8.0, 8.0, 8.0, 0.8, 8.0, 8.0, 8.0, 0.8]
 
       rl_policy_names:
-        - "rl_narrow_terrain"
-        - "rl_60kg"
+        - "rl_dreamwaq_terrain"
       
-      rl_narrow_terrain:
-        policy_path: config/d1/flat_yjy.onnx
+      rl_dreamwaq_flat:
+        policy_path: config/d1/dreamwaq_flat.onnx
         output_name: "actions"
         # env
         num_obs: 57
         num_actions: 16
-        history_len: 10
+        history_len: 5
         observations_name: ["ang_vel", "gravity", "commands", "dof_pos_nwp", "dof_vel", "last_actions"]
         commands_name: ["lin_vel_x", "lin_vel_y", "ang_vel_z"]
         commands_scale: [1.0, 1.0, 1.0] # lin_vel_scale, lin_vel_scale, ang_vel_scale
@@ -126,31 +125,29 @@
         ang_vel_scale: 1.0
         dof_pos_scale: 1.0
         dof_vel_scale: 1.0
-
-      rl_60kg:
-        policy_path: config/d1/60kg.onnx
-        output_name: "actions"
         
-        num_obs: 33
+      rl_dreamwaq_terrain:
+        policy_path: config/d1/dreamwaq_terrain.onnx
+        output_name: "actions"
+        # env
+        num_obs: 57
         num_actions: 16
-        history_len: 10
-        observations_name: ["ang_vel", "gravity", "commands", "dof_pos_nwp", "dof_vel_nwp"]
+        history_len: 5
+        observations_name: ["ang_vel", "gravity", "commands", "dof_pos_nwp", "dof_vel", "last_actions"]
         commands_name: ["lin_vel_x", "lin_vel_y", "ang_vel_z"]
-        commands_scale: [2.0, 2.0, 0.25] # lin_vel_scale, lin_vel_scale, ang_vel_scale
+        commands_scale: [1.0, 1.0, 1.0] # lin_vel_scale, lin_vel_scale, ang_vel_scale
         max_commands: [1.0, 1.0, 1.0]
         min_commands: [-1.0, -1.0, -1.0]
         commands_comp: [0.0, 0.0, 0.0] # direct add offset to command
         # control parameters
         time_interval: 0.02 # forward thread seconds
-        default_joint_angles: [0.0, 0.8, -1.5, -1.5, 0.0, 0.8, -1.5, -1.5, 0.0, 0.8, -1.5, -1.5, 0.0, 0.8, -1.5, -1.5]
-        # joint_kp: [60.0, 60.0, 40.0, 0.2, 60.0, 60.0, 40.0, 0.2, 60.0, 60.0, 40.0, 0.2, 60.0, 60.0, 40.0, 0.2]
-        # joint_kd: [3.0, 4.0, 4.0, 0.1, 3.0, 4.0, 4.0, 0.1, 3.0, 4.0, 4.0, 0.1, 3.0, 4.0, 4.0, 0.1]
-        joint_kp: [100.0, 60.0, 60.0, 10.0, 100.0, 60.0, 60.0, 10.0, 100.0, 60.0, 60.0, 10.0, 100.0, 60.0, 60.0, 10.0]
+        default_joint_angles: [-0.0, 0.8, -1.5, -1.5, 0.0, 0.8, -1.5, -1.5, -0.0, 0.8, -1.5, -1.5, 0.0, 0.8, -1.5, -1.5]
+        joint_kp: [60.0, 60.0, 60.0, 2.5, 60.0, 60.0, 60.0, 2.5, 60.0, 60.0, 60.0, 2.5, 60.0, 60.0, 60.0, 2.5]
         joint_kd: [1.5, 1.5, 1.5, 0.5, 1.5, 1.5, 1.5, 0.5, 1.5, 1.5, 1.5, 0.5, 1.5, 1.5, 1.5, 0.5]
 
         action_scales: [0.125, 0.25, 0.25, 1.0, 0.125, 0.25, 0.25, 1.0, 0.125, 0.25, 0.25, 1.0, 0.125, 0.25, 0.25, 1.0]
 
-        lin_vel_scale: 2.0
-        ang_vel_scale: 0.25
+        lin_vel_scale: 1.0
+        ang_vel_scale: 1.0
         dof_pos_scale: 1.0
-        dof_vel_scale: 0.05
+        dof_vel_scale: 1.0
