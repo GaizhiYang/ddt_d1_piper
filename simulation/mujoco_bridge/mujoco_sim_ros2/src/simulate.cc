@@ -26,6 +26,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <iostream>
 
 #include "lodepng.h"
 #include <mujoco/mjdata.h>
@@ -2597,6 +2598,12 @@ void Simulate::Render() {
     ShowFigure(this, viewport, &figure);
   }
 
+  // PrintBodyGravity(this->m_, this->d_, "base_link");
+  // PrintContactForces(this->m_, this->d_);
+  // PrintTotalBodyGravity(this->m_);
+  // std::vector<std::string> bodys = {"FL_hip", "FL_thigh", "FL_calf", "FL_foot"};
+  // PrintSomeBodyGravity(this->m_, bodys);
+
   // finalize
   this->platform_ui->SwapBuffers();
 }
@@ -2817,5 +2824,135 @@ void Simulate::UpdateTexture(int texid) {
   }
   texture_upload_ = texid;
   cond_upload_.wait(lock, [this]() { return texture_upload_ == -1; });
+}
+
+void Simulate::PrintBodyGravity(const mjModel* m, const mjData* d, const char* body_name) {
+    // 1. 获取 body 的 ID
+    int body_id = mj_name2id(m, mjOBJ_BODY, body_name);
+    if (body_id == -1) {\
+        std::cout << "找不到名为 '" << body_name << "' 的 body。" << std::endl;
+        return;
+    }
+
+    // 2. 获取 body 的质量
+    mjtNum mass = m->body_mass[body_id];
+
+    // 3. 获取全局重力向量 (m->opt.gravity 包含 [gx, gy, gz])
+    mjtNum gx = m->opt.gravity[0];
+    mjtNum gy = m->opt.gravity[1];
+    mjtNum gz = m->opt.gravity[2];
+
+    // 4. 计算重力大小与向量
+    mjtNum force_x = mass * gx;
+    mjtNum force_y = mass * gy;
+    mjtNum force_z = mass * gz;
+    double total_gravity = mass * std::sqrt(gx*gx + gy*gy + gz*gz);
+
+    std::cout << "--- 机身重力信息 [" << body_name << "] ---" << std::endl;
+    std::cout << "质量: " << mass << " kg" << std::endl;
+    std::cout << "重力向量 (世界坐标系): [" << force_x << ", " << force_y << ", " << force_z << "] N" << std::endl;
+    std::cout << "重力合力大小: " << total_gravity << " N" << std::endl;
+}
+
+void Simulate::PrintContactForces(const mjModel* m, const mjData* d) {
+    std::cout << "--- 当前时间步接触力信息 (总计 " << d->ncon << " 个接触点) ---" << std::endl;
+
+    for (int i = 0; i < d->ncon; ++i) {
+        mjContact contact = d->contact[i];
+
+        // 获取发生碰撞的两个 geom 的名称
+        const char* geom1_name = mj_id2name(m, mjOBJ_GEOM, contact.geom1);
+        const char* geom2_name = mj_id2name(m, mjOBJ_GEOM, contact.geom2);
+
+        // 如果没有命名，则打印 ID
+        std::string g1 = geom1_name ? geom1_name : "geom_" + std::to_string(contact.geom1);
+        std::string g2 = geom2_name ? geom2_name : "geom_" + std::to_string(contact.geom2);
+
+        // 提取 6 维接触力向量 (前3维是线形力，后3维是扭矩)
+        mjtNum c_forces[6] = {0.0};
+        mj_contactForce(m, d, i, c_forces);
+
+        // 在接触点的局部坐标系中：
+        // c_forces[0] 是法向接触力 (Normal Force)，负值代表排斥性的压力
+        // c_forces[1] 和 c_forces[2] 是切向摩擦力 (Friction Forces)
+        double normal_force = std::abs(c_forces[0]); 
+        double friction_force = std::sqrt(c_forces[1]*c_forces[1] + c_forces[2]*c_forces[2]);
+
+        // 如果你只想筛选“足端”的碰撞，可以根据名称过滤
+        // 例如：if (g1.find("foot") != std::string::npos || g2.find("foot") != std::string::npos)
+        
+        std::cout << "碰撞 [" << i << "]: " << g1 << " <--> " << g2 << std::endl;
+        std::cout << "  -> 法向接触力 (支持力): " << normal_force << " N" << std::endl;
+        std::cout << "  -> 切向摩擦力: " << friction_force << " N" << std::endl;
+    }
+}
+
+void Simulate::PrintTotalBodyGravity(const mjModel* m) {
+    double total_mass = 0.0;
+
+    // 从 1 开始遍历，因为 ID 0 通常是 world (地面/天空)，其质量不计入机器人
+    for (int i = 1; i < m->nbody; ++i) {
+        total_mass += m->body_mass[i];
+    }
+
+    // 获取重力加速度的大小 (g = sqrt(gx^2 + gy^2 + gz^2))
+    double gx = m->opt.gravity[0];
+    double gy = m->opt.gravity[1];
+    double gz = m->opt.gravity[2];
+    double g_acc = std::sqrt(gx*gx + gy*gy + gz*gz);
+
+    // 总重力 (牛顿 N)
+    double total_gravity = total_mass * g_acc;
+    
+    std::cout << "机器人总质量: " << total_mass << " kg" << std::endl;
+    std::cout << "整个机器人所受总重力: " << total_gravity << " N" << std::endl;
+}
+
+void Simulate::PrintSomeBodyGravity(const mjModel*m, const std::vector<std::string>& body_names) {
+  double total_mass = 0.0;
+    int found_count = 0;
+
+    std::cout << "--- 开始计算指定组件的重量 ---" << std::endl;
+
+    for (const auto& name : body_names) {
+        // 1. 根据名称查找 Body ID
+        int body_id = mj_name2id(m, mjOBJ_BODY, name.c_str());
+        
+        // 2. 检查该 Body 是否存在
+        if (body_id == -1) {
+            std::cerr << " [警告] 找不到名为 '" << name << "' 的 body，已跳过。" << std::endl;
+            continue;
+        }
+
+        // 3. 累加质量
+        double mass = m->body_mass[body_id];
+        total_mass += mass;
+        found_count++;
+
+        std::cout << "  -> 组件 [" << name << "] 质量: " << mass << " kg" << std::endl;
+    }
+
+    if (found_count == 0) {
+        std::cerr << " [错误] 未能找到任何有效的 Body！" << std::endl;
+        return;
+    }
+
+    // 4. 获取全局重力加速度大小
+    double gx = m->opt.gravity[0];
+    double gy = m->opt.gravity[1];
+    double gz = m->opt.gravity[2];
+    double g_acc = std::sqrt(gx*gx + gy*gy + gz*gz);
+
+    // 5. 计算总重力
+    double total_gravity = total_mass * g_acc;
+
+    std::cout << "--------------------------------" << std::endl;
+    std::cout << "成功统计组件数量: " << found_count << " 个" << std::endl;
+    std::cout << "指定组件的总质量: " << total_mass << " kg" << std::endl;
+    std::cout << "指定组件的总重力: " << total_gravity << " N" << std::endl;
+    std::cout << "重力向量 (世界坐标系): [" 
+              << total_mass * gx << ", " 
+              << total_mass * gy << ", " 
+              << total_mass * gz << "] N" << std::endl;
 }
 }  // namespace mujoco

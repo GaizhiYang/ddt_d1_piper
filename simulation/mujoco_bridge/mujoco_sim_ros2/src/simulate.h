@@ -89,6 +89,18 @@ class Simulate {
   // inject control noise
   void InjectNoise();
 
+  // print body gravity
+  void PrintBodyGravity(const mjModel* m, const mjData* d, const char* body_name);
+
+  // print body contact force
+  void PrintContactForces(const mjModel* m, const mjData* d);
+
+  // print total body contact force
+  void PrintTotalBodyGravity(const mjModel* m);
+
+  // print some body total Gravity
+  void PrintSomeBodyGravity(const mjModel*m, const std::vector<std::string>& body_names);
+
   // constants
   static constexpr int kMaxFilenameLength = 1000;
 
