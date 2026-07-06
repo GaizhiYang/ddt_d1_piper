@@ -154,7 +154,7 @@
         dof_vel_scale: 1.0
 
       rl_dreamwaq_highplat:
-        policy_path: config/d1/dreamwaq_highplat_3000_policy.onnx
+        policy_path: config/d1/0703-23-highplat-8000-policy.onnx
         output_name: "actions"
 
         num_obs: 57
