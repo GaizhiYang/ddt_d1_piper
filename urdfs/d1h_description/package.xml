@@ -4,7 +4,7 @@
   <name>d1h_description</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="liukexin@directdrivetech.com">lkx</maintainer>
+  <maintainer email="yjyflashing@gmail.com">lkx</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend    condition="$ROS_VERSION == 1">catkin</buildtool_depend>
