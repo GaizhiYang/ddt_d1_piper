@@ -148,6 +148,7 @@
     <parent link="F_base_link"/>
     <child link="FL_hip"/>
     <axis xyz="1 0 0"/>
+    <dynamics damping="0.6" friction="0.5"/>
     <limit effort="80" lower="-0.7854" upper="0.7854" velocity="20"/>
   </joint>
   <!-- L thigh link -->
@@ -179,6 +180,7 @@
     <parent link="FL_hip"/>
     <child link="FL_thigh"/>
     <axis xyz="0 1 0"/>
+    <dynamics damping="0.6" friction="0.5"/>
     <limit effort="80" lower="-1.8326" upper="3.4034" velocity="20"/>
   </joint>
   <!-- L calf link -->
@@ -210,6 +212,7 @@
     <parent link="FL_thigh"/>
     <child link="FL_calf"/>
     <axis xyz="0 1 0"/>
+    <dynamics damping="0.6" friction="0.5"/>
     <limit effort="80" lower="-2.72" upper="-0.85" velocity="20"/>
   </joint>
   <!-- L wheel link -->
@@ -266,6 +269,7 @@
     <parent link="F_base_link"/>
     <child link="FR_hip"/>
     <axis xyz="1 0 0"/>
+    <dynamics damping="0.6" friction="0.5"/>
     <limit effort="80" lower="-0.7854" upper="0.7854" velocity="20"/>
   </joint>
   <!-- R thigh link -->
@@ -297,6 +301,7 @@
     <parent link="FR_hip"/>
     <child link="FR_thigh"/>
     <axis xyz="0 1 0"/>
+    <dynamics damping="0.6" friction="0.5"/>
     <limit effort="80" lower="-1.8326" upper="3.4034" velocity="20"/>
   </joint>
   <!-- R calf link -->
@@ -328,6 +333,7 @@
     <parent link="FR_thigh"/>
     <child link="FR_calf"/>
     <axis xyz="0 1 0"/>
+    <dynamics damping="0.6" friction="0.5"/>
     <limit effort="80" lower="-2.72" upper="-0.85" velocity="20"/>
   </joint>
   <!-- R wheel link -->
