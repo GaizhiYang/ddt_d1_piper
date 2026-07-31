@@ -28,10 +28,10 @@
   <worldbody>
     <body name="base_link" pos="0 0 0.8" childclass="d1h">
       <geom size="0.0005 0.0005 0.0005" type="box" contype="0" conaffinity="0" group="1" density="0"/>
-      <body name="imu_link">
-        <inertial pos="0 0 0" mass="0.001" diaginertia="0.0001 0.0001 0.0001"/>
-      </body>
       <site name="trunk_imu" size="0.01"/>
+      <body name="imu_link">
+        <geom size="0.0005 0.0005 0.0005" type="box" contype="0" conaffinity="0" group="1" density="0"/>
+      </body>
       <joint name="floating_base_joint" type="free" limited="false" actuatorfrclimited="false"/>
       <body name="F_base_link">
         <inertial pos="0.030736 0.00016011 -0.033144" quat="0.540652 0.457275 0.456202 0.538957" mass="9.158" diaginertia="0.12672 0.120661 0.0720841"/>
