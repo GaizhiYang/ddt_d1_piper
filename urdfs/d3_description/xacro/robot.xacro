@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<robot name="d3_description"
+    xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:arg name="hw_env" default="none" />
+
+    <xacro:include filename="$(find d3_description)/xacro/ros2control.xacro"/>
+    <xacro:ros2control hw_env="$(arg hw_env)" />
+
+    <xacro:include filename="$(find d1h_description)/xacro/d1h_base.xacro"/>
+    <xacro:include filename="$(find d3_description)/xacro/d1h_middle.xacro"/>
+
+    <!-- Robot Base link -->
+    <link name="base_link">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <!-- Imu link -->
+    <link name="imu_link">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="red"/>
+        </visual>
+    </link>
+
+    <!-- Imu Joint -->
+    <joint name="imu_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="imu_link"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+    </joint>
+
+    <xacro:d1h_base name="F" x_offset="0.1875"/>
+    <xacro:d1h_middle name="M" x_offset="-0.1875"/>
+    <xacro:d1h_base name="R" x_offset="-0.5625"/>
+</robot>
