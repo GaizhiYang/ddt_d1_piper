@@ -171,11 +171,11 @@
         - "rl_dreamwaq_flat"
       
       rl_dreamwaq_flat:
-        policy_path: config/d1/dreamwaq_flat.onnx
+        policy_path: config/d3/d3_flat_dreamwaq.onnx
         output_name: "actions"
         # env
-        num_obs: 57
-        num_actions: 16
+        num_obs: 81
+        num_actions: 24
         history_len: 5
         observations_name: ["ang_vel", "gravity", "commands", "dof_pos_nwp", "dof_vel", "last_actions"]
         commands_name: ["lin_vel_x", "lin_vel_y", "ang_vel_z"]
@@ -185,11 +185,31 @@
         commands_comp: [0.0, 0.0, 0.0] # direct add offset to command
         # control parameters
         time_interval: 0.02 # forward thread seconds
-        default_joint_angles: [-0.2, 0.8, -1.5, -1.5, 0.2, 0.8, -1.5, -1.5, -0.2, 0.8, -1.5, -1.5, 0.2, 0.8, -1.5, -1.5]
-        joint_kp: [60.0, 60.0, 60.0, 2.5, 60.0, 60.0, 60.0, 2.5, 60.0, 60.0, 60.0, 2.5, 60.0, 60.0, 60.0, 2.5]
-        joint_kd: [1.5, 1.5, 1.5, 0.5, 1.5, 1.5, 1.5, 0.5, 1.5, 1.5, 1.5, 0.5, 1.5, 1.5, 1.5, 0.5]
+        default_joint_angles: [-0.0, 0.8, -1.5, 0.0, 
+                            0.0, 0.8, -1.5, 0.0, 
+                            -0.0, 1.0, -1.5, 0.0,
+                             0.0, 1.0, -1.5, 0.0,
+                             -0.0, 1.0, -1.5, 0.0,
+                             0.0, 1.0, -1.5, 0.0]
+        joint_kp: [60.0, 60.0, 60.0, 2.5, 
+                60.0, 60.0, 60.0, 2.5, 
+                60.0, 60.0, 60.0, 2.5, 
+                60.0, 60.0, 60.0, 2.5,
+                60.0, 60.0, 60.0, 2.5, 
+                60.0, 60.0, 60.0, 2.5]
+        joint_kd: [3.0, 3.0, 3.0, 0.5, 
+                3.0, 3.0, 3.0, 0.5,  
+                3.0, 3.0, 3.0, 0.5, 
+                3.0, 3.0, 3.0, 0.5, 
+                3.0, 3.0, 3.0, 0.5, 
+                3.0, 3.0, 3.0, 0.5]
 
-        action_scales: [0.125, 0.25, 0.25, 1.0, 0.125, 0.25, 0.25, 1.0, 0.125, 0.25, 0.25, 1.0, 0.125, 0.25, 0.25, 1.0]
+        action_scales: [0.125, 0.25, 0.25, 1.0,
+                    0.125, 0.25, 0.25, 1.0, 
+                    0.125, 0.25, 0.25, 1.0, 
+                    0.125, 0.25, 0.25, 1.0,
+                    0.125, 0.25, 0.25, 1.0, 
+                    0.125, 0.25, 0.25, 1.0]
 
         lin_vel_scale: 1.0
         ang_vel_scale: 1.0
