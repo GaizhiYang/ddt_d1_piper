@@ -64,8 +64,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -81,8 +81,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -98,8 +98,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -115,8 +115,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -131,8 +131,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -147,8 +147,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -163,8 +163,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -179,8 +179,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -197,8 +197,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -214,8 +214,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -231,8 +231,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -248,8 +248,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -265,8 +265,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -282,8 +282,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -299,8 +299,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -316,8 +316,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -334,8 +334,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -350,8 +350,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -366,8 +366,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -382,8 +382,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -398,8 +398,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -414,8 +414,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -430,8 +430,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
@@ -446,8 +446,8 @@
         <command_interface name="position"/>
         <command_interface name="velocity"/>
         <command_interface name="effort">
-          <param name="min">-100</param>
-          <param name="max">100</param>
+          <param name="min">-80</param>
+          <param name="max">80</param>
         </command_interface>
         <command_interface name="kp"/>
         <command_interface name="kd"/>
