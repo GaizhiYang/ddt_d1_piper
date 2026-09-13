@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>loco_mani_d1_vendor_adapter</name>
+  <version>0.1.0</version>
+  <description>Flat C ABI adapter for the DDT D1 CanfdApi.</description>
+  <maintainer email="loco_mani@example.com">loco_mani</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

@@ -25,10 +25,14 @@
   <depend>urdf</depend>
   <depend>control_toolbox</depend>
   <depend>mujoco_sim_ros2</depend>
+  <depend>rosgraph_msgs</depend>
+  <depend>std_msgs</depend>
 
   <exec_depend>ros2controlcli</exec_depend>
   <exec_depend>joint_state_broadcaster</exec_depend>
   <exec_depend>effort_controllers</exec_depend>
+  <exec_depend>forward_command_controller</exec_depend>
+  <exec_depend>imu_sensor_broadcaster</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_cmake_clang_format</test_depend>

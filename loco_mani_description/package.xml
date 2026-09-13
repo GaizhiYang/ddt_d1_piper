@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>loco_mani_description</name>
+  <version>0.1.0</version>
+  <description>D1 four-wheel-leg robot with a left-mounted Piper-L arm.</description>
+  <maintainer email="loco_mani@example.com">loco_mani</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

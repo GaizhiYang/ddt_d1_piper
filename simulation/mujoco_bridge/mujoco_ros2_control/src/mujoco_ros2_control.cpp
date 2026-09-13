@@ -40,11 +40,41 @@ MujocoRos2Control::MujocoRos2Control(
 
 MujocoRos2Control::~MujocoRos2Control()
 {
+  // Stop the executor thread before destroying its nodes.  ``remove_node``
+  // may throw when rclcpp has already begun shutdown, so cancellation and
+  // joining are intentionally best-effort and guarded by the pointers.
   stop_cm_thread_ = true;
-  cm_executor_->remove_node(controller_manager_);
-  cm_executor_->cancel();
-
-  if (cm_thread_.joinable()) cm_thread_.join();
+  if (cm_executor_) {
+    cm_executor_->cancel();
+  }
+  if (cm_thread_.joinable()) {
+    cm_thread_.join();
+  }
+  // The executor no longer spins, so detach the nodes before the executor is
+  // released.  Keep the ROS context alive while ControllerManager and the
+  // executor are destroyed; the MuJoCo executable performs the final
+  // rclcpp::shutdown() after this destructor returns.
+  if (cm_executor_ && controller_manager_ && rclcpp::ok()) {
+    try {
+      // Detach the nodes before destroying the manager.  Do not call
+      // ``shutdown_controllers()`` explicitly here: ControllerManager also
+      // performs lifecycle shutdown from its destructor, and doing both in
+      // an embedded executor can destroy controller/plugin objects twice
+      // during normal MuJoCo exit (observed as an exit code -11 after the
+      // controller shutdown messages).  The executor is already stopped and
+      // joined above, so the manager destructor is the sole owner of that
+      // lifecycle transition.
+      cm_executor_->remove_node(controller_manager_);
+      cm_executor_->remove_node(node_);
+    } catch (const std::exception & ex) {
+      RCLCPP_DEBUG(logger_, "ROS nodes already detached during shutdown: %s", ex.what());
+    }
+  }
+  // Explicitly release the manager while the ROS context is valid.  Without
+  // this ordering, member destruction can occur after the main executable has
+  // invalidated rclcpp handles and Fast-DDS reports a use-after-shutdown.
+  controller_manager_.reset();
+  cm_executor_.reset();
 }
 
 std::string MujocoRos2Control::get_robot_description()
@@ -204,13 +234,19 @@ void MujocoRos2Control::pre_update() {
 
 void MujocoRos2Control::update()
 {
-  if (sim_period_ >= control_period_) {
-    controller_manager_->read(sim_time_ros_, sim_period_);
-    controller_manager_->update(sim_time_ros_, sim_period_);
+  // When the MuJoCo model is held at its initial state during launch, the
+  // simulated period is zero.  ControllerManager still has to receive update
+  // calls so that spawner services can complete configure/activate requests.
+  // Use one nominal control period for that special case; this does not
+  // advance MuJoCo time and therefore does not affect duration semantics.
+  const auto update_period = sim_period_.nanoseconds() > 0 ? sim_period_ : control_period_;
+  if (sim_period_ >= control_period_ || sim_period_.nanoseconds() == 0) {
+    controller_manager_->read(sim_time_ros_, update_period);
+    controller_manager_->update(sim_time_ros_, update_period);
     last_update_sim_time_ros_ = sim_time_ros_;
   }
   // use same time as for read and update call - this is how it is done in ros2_control_node
-  controller_manager_->write(sim_time_ros_, sim_period_);
+  controller_manager_->write(sim_time_ros_, update_period);
 }
 
 void MujocoRos2Control::update_with_step() {

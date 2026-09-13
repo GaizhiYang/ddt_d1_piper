@@ -1,0 +1,299 @@
+# Hardware-independent policy contract.  The CAN backend must consume this
+# file without changing the order or units below.
+policy:
+  path: /home/hh/loco-mani/logs/rsl_rl/d1_piper_wbc/2026-08-10_16-51-00/exported/policy.onnx
+  sha256: c142c881aac43d90c2d5970dff392a77c7c3610196a933ba72ea2459d7c88010
+  frequency_hz: 50
+  history_length: 3
+  frame_dim: 82
+  action_dim: 22
+  sim_dt: 0.005
+  decimation: 4
+  history_layout: term-major
+  action_scale: [0.25, 0.25, 0.25, 5.0, 0.25, 0.25, 0.25, 5.0,
+                 0.25, 0.25, 0.25, 5.0, 0.25, 0.25, 0.25, 5.0,
+                 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+  # Optional aliases accepted by the shared config loader.  They are useful
+  # when importing an IsaacLab/RSL-RL export with a different tensor naming.
+  input_names: [obs]
+  output_name: actions
+  action_clip: 100.0
+
+# Robot/model ABI.  These lists must stay in exactly the same order as the
+# exported policy and MuJoCo actuators; changing a joint name/order requires a
+# corresponding policy retraining or an explicit remapping layer.
+robot:
+  name: d1_piper_l
+  base_link: base_link
+  imu_sensor: trunk_imu
+  end_effector: end_effector
+  ee_reference_frame: piper_base_link
+  joints:
+    - FL_hip_joint
+    - FL_thigh_joint
+    - FL_calf_joint
+    - FL_foot_joint
+    - FR_hip_joint
+    - FR_thigh_joint
+    - FR_calf_joint
+    - FR_foot_joint
+    - RL_hip_joint
+    - RL_thigh_joint
+    - RL_calf_joint
+    - RL_foot_joint
+    - RR_hip_joint
+    - RR_thigh_joint
+    - RR_calf_joint
+    - RR_foot_joint
+    - joint1
+    - joint2
+    - joint3
+    - joint4
+    - joint5
+    - joint6
+  actuators:
+    - FL_hip
+    - FL_thigh
+    - FL_calf
+    - FL_foot
+    - FR_hip
+    - FR_thigh
+    - FR_calf
+    - FR_foot
+    - RL_hip
+    - RL_thigh
+    - RL_calf
+    - RL_foot
+    - RR_hip
+    - RR_thigh
+    - RR_calf
+    - RR_foot
+    - piper_joint1
+    - piper_joint2
+    - piper_joint3
+    - piper_joint4
+    - piper_joint5
+    - piper_joint6
+
+# Control/action parameters.  All vectors use the policy joint order above.
+# ``default_joint_angles`` is the policy zero; wheels use velocity actions and
+# their corresponding position target is replaced by measured feedback.
+control:
+  type: position_velocity_pd
+  default_joint_angles: [0.0, 0.8, -1.5, 0.0,
+                         0.0, 0.8, -1.5, 0.0,
+                         0.0, 0.8, -1.5, 0.0,
+                         0.0, 0.8, -1.5, 0.0,
+                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  joint_kp: [60.0, 60.0, 60.0, 0.0,
+             60.0, 60.0, 60.0, 0.0,
+             60.0, 60.0, 60.0, 0.0,
+             60.0, 60.0, 60.0, 0.0,
+             50.0, 50.0, 80.0, 30.0, 30.0, 20.0]
+  joint_kd: [3.0, 3.0, 3.0, 0.5,
+             3.0, 3.0, 3.0, 0.5,
+             3.0, 3.0, 3.0, 0.5,
+             3.0, 3.0, 3.0, 0.5,
+             3.0, 2.0, 3.0, 3.0, 2.5, 1.0]
+  action_scales: [0.25, 0.25, 0.25, 5.0,
+                  0.25, 0.25, 0.25, 5.0,
+                  0.25, 0.25, 0.25, 5.0,
+                  0.25, 0.25, 0.25, 5.0,
+                  0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+  torque_limit: [90.0, 90.0, 90.0, 12.0,
+                 90.0, 90.0, 90.0, 12.0,
+                 90.0, 90.0, 90.0, 12.0,
+                 90.0, 90.0, 90.0, 12.0,
+                 20.0, 20.0, 15.0, 7.0, 5.0, 5.0]
+  wheel_indices: [3, 7, 11, 15]
+  piper_delay_steps: 0
+  dc_motor:
+    enabled: true
+    saturation_effort: [90.0, 90.0, 90.0, 12.0,
+                         90.0, 90.0, 90.0, 12.0,
+                         90.0, 90.0, 90.0, 12.0,
+                         90.0, 90.0, 90.0, 12.0,
+                         0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    velocity_limit: [20.0, 20.0, 20.0, 30.0,
+                     20.0, 20.0, 20.0, 30.0,
+                     20.0, 20.0, 20.0, 30.0,
+                     20.0, 20.0, 20.0, 30.0,
+                     .inf, .inf, .inf, .inf, .inf, .inf]
+
+# Observation terms are concatenated as [base_ang_vel, projected_gravity,
+# joint_pos, joint_vel, last_action, command_velocity, ee_pose].  Noise is
+# injected before each term scale, matching IsaacLab ObservationManager.
+observations:
+  frame_dim: 82
+  history_length: 3
+  history_layout: term-major
+  clip: 100.0
+  enabled: false
+  term_order: [base_ang_vel, projected_gravity, joint_pos, joint_vel,
+               last_action, command_velocity, ee_pose]
+  term_sizes: [3, 3, 22, 22, 22, 3, 7]
+  scales:
+    base_ang_vel: 0.2
+    projected_gravity: 1.0
+    joint_pos: 1.0
+    joint_vel: 1.0
+    last_action: 1.0
+    command_velocity: 1.0
+    ee_pose: 1.0
+  noise_ranges:
+    base_ang_vel: [-0.2, 0.2]
+    projected_gravity: [-0.05, 0.05]
+    joint_pos: [-0.01, 0.01]
+    joint_vel: [-1.5, 1.5]
+    last_action: [0.0, 0.0]
+    command_velocity: [0.0, 0.0]
+    ee_pose: [0.0, 0.0]
+
+# Initial command and limits.  The command values use SI units and the EE
+# quaternion is scalar-first [qw,qx,qy,qz].
+commands:
+  velocity:
+    default: [0.0, 0.0, 0.0]
+  velocity_limits: [1.0, 1.0, 1.5]
+  ee_pose:
+    frame: piper_base_link
+    z_frame: world
+    default: [0.425, 0.0, 0.5, 1.0, 0.0, 0.0, 0.0]
+    position_limits:
+      x: [0.15, 0.75]
+      y: [-0.45, 0.45]
+      z: [0.20, 0.90]
+    orientation_limits_rpy: [-0.6, 0.6]
+
+simulation:
+  # Leave empty when using the ROS2 launch default; a non-empty path is
+  # resolved relative to this YAML file and is useful for standalone runs.
+  xml_path: ""
+  sim_dt: 0.005
+  decimation: 4
+  initial_height: 0.45
+  piper_delay_steps: 0
+  passive_damping_scale: 0.0
+  passive_frictionloss_scale: 1.0
+  dc_motor_curve: true
+  duration: 30.0
+  headless: true
+  real_time: false
+  print_interval: 1.0
+  stop_on_fall: false
+  fall_height: 0.25
+  fall_tilt_deg: 35.0
+
+runtime:
+  policy_hz: 50.0
+  command_hz: 500.0
+  state_reader_hz: 500.0
+  # Maximum age of a vendor feedback sample. This is independent from the
+  # policy command watchdog so a cached CAN frame cannot be accepted merely
+  # because the reader thread is still polling it.
+  feedback_timeout_ms: 20.0
+  command_file_timeout_s: 0.5
+  policy_watchdog_timeout_ms: 40.0
+
+# Optional preparation phase before the learned policy.  Keep this disabled
+# until the D1 transform-up pose, Piper home pose and gains have been checked
+# on the physical robot.  ``ramp_default`` only provides a generic joint-space
+# ramp; it is not a replacement for the original D1 FSM safety checks.
+startup:
+  enabled: false
+  mode: policy                 # policy | hold | ramp_default
+  ramp_s: 3.0
+  hold_s: 1.0
+
+buses:
+  d1:
+    interface: can0
+    joint_count: 16
+    backend: tita_robot
+    # The DDT API reports radians, rad/s and N*m.  Do not apply a second
+    # degrees conversion in the policy adapter.
+  piper:
+    interface: can1
+    joint_count: 6
+    backend: pyagxarm
+    robot: piper_l
+    bitrate: 1000000
+    firmware_profile: auto
+
+# Explicit policy order; this is checked at startup by the hardware adapter.
+joints:
+  - FL_hip_joint
+  - FL_thigh_joint
+  - FL_calf_joint
+  - FL_foot_joint
+  - FR_hip_joint
+  - FR_thigh_joint
+  - FR_calf_joint
+  - FR_foot_joint
+  - RL_hip_joint
+  - RL_thigh_joint
+  - RL_calf_joint
+  - RL_foot_joint
+  - RR_hip_joint
+  - RR_thigh_joint
+  - RR_calf_joint
+  - RR_foot_joint
+  - joint1
+  - joint2
+  - joint3
+  - joint4
+  - joint5
+  - joint6
+
+# Per-joint hardware calibration.  IDs, signs and zero offsets are deliberately
+# left unset until they are read back from the specific D1/Piper electronics;
+# never infer these values from URDF order.  ``dry_run=true`` permits null
+# values for workstation checks.  A non-dry-run startup must fill every field.
+joint_calibration:
+  FL_hip_joint:   {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-0.7854, 0.7854], velocity_limit_rad_s: 20.0, torque_limit_nm: 90.0}
+  FL_thigh_joint: {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-1.8326, 3.4034], velocity_limit_rad_s: 20.0, torque_limit_nm: 90.0}
+  FL_calf_joint:  {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-2.72, -0.85], velocity_limit_rad_s: 20.0, torque_limit_nm: 90.0}
+  FL_foot_joint:  {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: null, velocity_limit_rad_s: 30.0, torque_limit_nm: 12.0}
+  FR_hip_joint:   {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-0.7854, 0.7854], velocity_limit_rad_s: 20.0, torque_limit_nm: 90.0}
+  FR_thigh_joint: {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-1.8326, 3.4034], velocity_limit_rad_s: 20.0, torque_limit_nm: 90.0}
+  FR_calf_joint:  {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-2.72, -0.85], velocity_limit_rad_s: 20.0, torque_limit_nm: 90.0}
+  FR_foot_joint:  {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: null, velocity_limit_rad_s: 30.0, torque_limit_nm: 12.0}
+  RL_hip_joint:   {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-0.7854, 0.7854], velocity_limit_rad_s: 20.0, torque_limit_nm: 90.0}
+  RL_thigh_joint: {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-1.8326, 3.4034], velocity_limit_rad_s: 20.0, torque_limit_nm: 90.0}
+  RL_calf_joint:  {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-2.72, -0.85], velocity_limit_rad_s: 20.0, torque_limit_nm: 90.0}
+  RL_foot_joint:  {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: null, velocity_limit_rad_s: 30.0, torque_limit_nm: 12.0}
+  RR_hip_joint:   {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-0.7854, 0.7854], velocity_limit_rad_s: 20.0, torque_limit_nm: 90.0}
+  RR_thigh_joint: {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-1.8326, 3.4034], velocity_limit_rad_s: 20.0, torque_limit_nm: 90.0}
+  RR_calf_joint:  {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-2.72, -0.85], velocity_limit_rad_s: 20.0, torque_limit_nm: 90.0}
+  RR_foot_joint:  {bus: d1, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: null, velocity_limit_rad_s: 30.0, torque_limit_nm: 12.0}
+  joint1: {bus: piper, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-2.618, 2.618], velocity_limit_rad_s: 5.0, torque_limit_nm: 20.0}
+  joint2: {bus: piper, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [0.0, 3.141593], velocity_limit_rad_s: 5.0, torque_limit_nm: 20.0}
+  joint3: {bus: piper, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-2.96706, 0.0], velocity_limit_rad_s: 5.0, torque_limit_nm: 15.0}
+  joint4: {bus: piper, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-2.21657, 2.21657], velocity_limit_rad_s: 5.0, torque_limit_nm: 7.0}
+  joint5: {bus: piper, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-1.56207, 1.56207], velocity_limit_rad_s: 5.0, torque_limit_nm: 5.0}
+  joint6: {bus: piper, bus_index: null, can_id: null, direction: null, position_offset_rad: null, position_limits: [-2.0944, 2.0944], velocity_limit_rad_s: 5.0, torque_limit_nm: 5.0}
+
+safety:
+  enable_on_start: false
+  dry_run: true
+  state_timeout_ms: 20
+  command_timeout_ms: 40
+  max_tilt_deg: 35
+  min_base_height_m: 0.25
+  # Current D1 CAN feedback has no validated world-referenced base-height
+  # source. Keep this false until a measured estimator/source is integrated;
+  # setting it true without one fails closed.
+  base_height_check_enabled: false
+  # The exported policy is not guaranteed to be normalized to [-1, 1]; the
+  # adapter still applies per-joint position/velocity/torque limits.
+  max_action_abs: 10.0
+  max_torque_rate_nm_s: 300.0
+  require_estop_clear: true
+
+# Runtime adapter notes:
+# - The Python process must import d1_piper_hardware.py and inject a validated
+#   D1Api wrapper around libtita_robot (the C++ ABI is not guessed here).
+# - Piper is created with pyAgxArm(robot=piper_l, channel=can1). Firmware
+#   profile 'auto' probes get_firmware() before selecting default/v183/v188/v189.
+# - Keep dry_run=true until the acceptance gates in docs/implementation_plan.md
+#   are completed; no launch file in this repository enables either bus.

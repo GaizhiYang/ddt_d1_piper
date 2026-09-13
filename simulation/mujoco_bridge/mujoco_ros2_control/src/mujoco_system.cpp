@@ -395,7 +395,12 @@ void MujocoSystem::register_sensors(
       sensor_data.torque.mj_sensor_index = mj_model_->sensor_adr[torque_sensor_id];
 
       ft_sensor_data_.push_back(sensor_data);
-      auto &last_sensor_data = ft_sensor_data_.at(sensor_index);
+      // ``sensor_index`` indexes the complete URDF sensor list, while
+      // ``ft_sensor_data_`` contains only force/torque sensors.  These
+      // indices diverge as soon as an IMU (or another sensor type) appears
+      // before an F/T sensor.  Bind interfaces to the element just added
+      // instead of indexing the filtered vector with the global index.
+      auto &last_sensor_data = ft_sensor_data_.back();
 
       for (const auto &state_if : sensor.state_interfaces)
       {
@@ -457,7 +462,9 @@ void MujocoSystem::register_sensors(
       sensor_data.linear_acceleration.mj_sensor_index = mj_model_->sensor_adr[accel_id];
 
       imu_sensor_data_.push_back(sensor_data);
-      auto &last_sensor_data = imu_sensor_data_.at(sensor_index);
+      // See the F/T case above: use the filtered-vector element that was
+      // actually appended, not the index in ``hardware_info.sensors``.
+      auto &last_sensor_data = imu_sensor_data_.back();
 
       for (const auto &state_if : sensor.state_interfaces)
       {

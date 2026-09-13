@@ -1,0 +1,187 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="loco_mani_ros2control">
+  <xacro:macro name="loco_mani_ros2_control"
+                 params="hardware_plugin:='mujoco_ros2_control/MujocoSystem' name:='mujoco'">
+    <ros2_control name="${name}" type="system">
+      <hardware><plugin>${hardware_plugin}</plugin></hardware>
+      <joint name="FL_hip_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="FL_thigh_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="FL_calf_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="FL_foot_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="FR_hip_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="FR_thigh_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="FR_calf_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="FR_foot_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="RL_hip_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="RL_thigh_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="RL_calf_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="RL_foot_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="RR_hip_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="RR_thigh_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="RR_calf_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="RR_foot_joint">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="joint1">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="joint2">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="joint3">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="joint4">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="joint5">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <joint name="joint6">
+        <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"><param name="min">-100</param><param name="max">100</param></command_interface>
+        <command_interface name="kp"/><command_interface name="kd"/>
+        <state_interface name="position"/><state_interface name="velocity"/><state_interface name="effort"/>
+      </joint>
+      <sensor name="trunk_imu">
+        <state_interface name="orientation.x"/><state_interface name="orientation.y"/>
+        <state_interface name="orientation.z"/><state_interface name="orientation.w"/>
+        <state_interface name="angular_velocity.x"/><state_interface name="angular_velocity.y"/><state_interface name="angular_velocity.z"/>
+        <state_interface name="linear_acceleration.x"/><state_interface name="linear_acceleration.y"/><state_interface name="linear_acceleration.z"/>
+      </sensor>
+    </ros2_control>
+  </xacro:macro>
+  <!-- Compatibility alias matching the original D1 description. -->
+  <xacro:macro name="ros2control"
+                 params="hw_env:='none' hardware_plugin:='' name:='mujoco'">
+    <xacro:property name="selected_plugin" value="${hardware_plugin}"/>
+    <xacro:if value="${hw_env == 'webots'}">
+      <xacro:property name="selected_plugin" value="tita_webots_ros2_control::WebotsBridge"/>
+    </xacro:if>
+    <xacro:if value="${hw_env == 'gazebo'}">
+      <xacro:property name="selected_plugin" value="usr_gazebo_ros2_control/GazeboBridge"/>
+    </xacro:if>
+    <xacro:if value="${hw_env == 'hw'}">
+      <xacro:property name="selected_plugin" value="tita_locomotion::HardwareBridge"/>
+    </xacro:if>
+    <xacro:if value="${selected_plugin == ''}">
+      <xacro:property name="selected_plugin" value="mujoco_ros2_control/MujocoSystem"/>
+    </xacro:if>
+    <xacro:loco_mani_ros2_control hardware_plugin="${selected_plugin}" name="${name}"/>
+  </xacro:macro>
+</robot>

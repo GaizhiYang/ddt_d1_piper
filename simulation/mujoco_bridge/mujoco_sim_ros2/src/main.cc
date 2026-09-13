@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #include <cerrno>
+#include <atomic>
+#include <cmath>
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
@@ -54,6 +56,37 @@ namespace {
 namespace mj = ::mujoco;
 namespace mju = ::mujoco::sample_util;
 
+// MuJoCo's stock ``simulate`` application assumes a GLFW window.  ROS 2
+// launch must also be usable on Jetson/CI machines without a display, so the
+// physics/plugin path gets a small no-op UI adapter in headless mode.  The
+// adapter is never asked to render; it only supplies the state object owned by
+// ``Simulate`` and satisfies its platform abstraction.
+class HeadlessUIAdapter final : public mj::PlatformUIAdapter {
+ public:
+  std::pair<double, double> GetCursorPosition() const override { return {0.0, 0.0}; }
+  double GetDisplayPixelsPerInch() const override { return 96.0; }
+  std::pair<int, int> GetFramebufferSize() const override { return {1, 1}; }
+  std::pair<int, int> GetWindowSize() const override { return {1, 1}; }
+  bool IsGPUAccelerated() const override { return false; }
+  void PollEvents() override {}
+  void SetClipboardString(const char*) override {}
+  void SetVSync(bool) override {}
+  void SetWindowTitle(const char*) override {}
+  bool ShouldCloseWindow() const override { return false; }
+  void SwapBuffers() override {}
+  void ToggleFullscreen() override {}
+  bool IsLeftMouseButtonPressed() const override { return false; }
+  bool IsMiddleMouseButtonPressed() const override { return false; }
+  bool IsRightMouseButtonPressed() const override { return false; }
+  bool IsAltKeyPressed() const override { return false; }
+  bool IsCtrlKeyPressed() const override { return false; }
+  bool IsShiftKeyPressed() const override { return false; }
+  bool IsMouseButtonDownEvent(int) const override { return false; }
+  bool IsKeyDownEvent(int) const override { return false; }
+  int TranslateKeyCode(int key) const override { return key; }
+  mjtButton TranslateMouseButton(int) const override { return mjBUTTON_NONE; }
+};
+
 // constants
 const double syncMisalign = 0.1;        // maximum mis-alignment before re-sync (simulation seconds)
 const double simRefreshFraction = 0.7;  // fraction of refresh available for simulation
@@ -62,6 +95,12 @@ const int kErrorLength = 1024;          // load error string length
 // model and data
 mjModel* m = nullptr;
 mjData* d = nullptr;
+
+// The renderer and physics loop own the MuJoCo model/data lifetime.  Keep a
+// pointer to the simulation UI only so SIGINT can request an orderly shutdown;
+// deleting ``m``/``d`` directly from the signal handler races with the physics
+// thread and used to cause a double free (exit code -11 on normal Ctrl-C).
+std::atomic<mj::Simulate*> active_sim{nullptr};
 
 using Seconds = std::chrono::duration<double>;
 
@@ -218,6 +257,49 @@ const char* Diverged(int disableflags, const mjData* d) {
   return nullptr;
 }
 
+// Keep the ros2_control hook ordering identical for every physics step.  In
+// particular, the first step after a real-time re-sync must not bypass
+// ControllerManager::update(); doing so creates a one-step stale command and
+// makes sim2sim traces differ from the regular loop.
+void StepWithPlugins(
+    mjModel* model, mjData* data,
+    std::vector<std::shared_ptr<mujoco_sim_ros2::MujocoPhysicsPlugin>>& plugins) {
+  if (plugins.empty()) {
+    mj_step(model, data);
+    return;
+  }
+  for (auto& plugin : plugins) {
+    plugin->PreUpdate(model, data);
+  }
+  mj_step1(model, data);
+  for (auto& plugin : plugins) {
+    plugin->Update(model, data);
+  }
+  mj_step2(model, data);
+  for (auto& plugin : plugins) {
+    plugin->PostUpdate(model, data);
+  }
+}
+
+// Service controller-manager callbacks while the physics model is held at
+// its initial state.  ros2_control performs controller activation in its
+// update loop, so merely setting ``sim.run = 0`` would make every spawner time
+// out.  No MuJoCo integration step is performed here; only the plugin hooks
+// (and therefore the embedded ControllerManager) are serviced.
+void UpdatePluginsWithoutPhysics(
+    mjModel* model, mjData* data,
+    std::vector<std::shared_ptr<mujoco_sim_ros2::MujocoPhysicsPlugin>>& plugins) {
+  for (auto& plugin : plugins) {
+    plugin->PreUpdate(model, data);
+  }
+  for (auto& plugin : plugins) {
+    plugin->Update(model, data);
+  }
+  for (auto& plugin : plugins) {
+    plugin->PostUpdate(model, data);
+  }
+}
+
 mjModel* LoadModel(const char* file, mj::Simulate& sim) {
   // this copy is needed so that the mju::strlen call below compiles
   char filename[mj::Simulate::kMaxFilenameLength];
@@ -278,13 +360,46 @@ mjModel* LoadModel(const char* file, mj::Simulate& sim) {
 
 // simulate in background thread (while rendering in main thread)
 void PhysicsLoop(mj::Simulate& sim,
-  std::vector<std::shared_ptr<mujoco_sim_ros2::MujocoPhysicsPlugin>>& plugins) {
+  std::vector<std::shared_ptr<mujoco_sim_ros2::MujocoPhysicsPlugin>>& plugins,
+  bool real_time, double duration, const rclcpp::Node::SharedPtr& node,
+  bool start_paused) {
   // cpu-sim syncronization point
   std::chrono::time_point<mj::Simulate::Clock> syncCPU;
   mjtNum syncSim = 0;
 
   // run until asked to exit
   while (!sim.exitrequest.load()) {
+    // In a launch-composed ROS graph, keep the model paused until the
+    // controller spawners and policy node are ready.  The launch file flips
+    // this parameter through the normal ROS parameter service.  This avoids
+    // consuming simulation time (or letting an uncontrolled robot fall) while
+    // controller_manager is still discovering services.
+    if (start_paused) {
+      bool paused = true;
+      try {
+        paused = node->get_parameter("start_paused").as_bool();
+      } catch (const std::exception &) {
+        // The parameter is declared by main before this thread starts.  Keep
+        // the safe default if a shutdown races parameter access.
+        paused = true;
+      }
+      if (paused) {
+        std::unique_lock<std::recursive_mutex> lock(sim.mtx);
+        if (m && d) {
+          UpdatePluginsWithoutPhysics(m, d, plugins);
+        }
+        lock.unlock();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        continue;
+      }
+    }
+    // ``duration`` is expressed in MuJoCo simulation seconds, rather than
+    // wall-clock seconds.  This keeps fast/offline runs and real-time runs
+    // semantically identical.  A value of zero disables the limit.
+    if (duration > 0.0 && d && d->time >= duration) {
+      sim.exitrequest.store(1);
+      break;
+    }
     if (sim.droploadrequest.load()) {
       sim.LoadMessage(sim.dropfilename);
       mjModel* mnew = LoadModel(sim.dropfilename, sim);
@@ -334,8 +449,29 @@ void PhysicsLoop(mj::Simulate& sim,
       }
     }
 
-    // sleep for 1 ms or yield, to let main thread run
-    //  yield results in busy wait - which has better timing but kills battery life
+    // In fast/headless mode do not use the GUI synchronisation clock.  This
+    // is the same single-step/plugin ordering as the real-time path, but it
+    // advances as quickly as the host permits and is useful for CI/trace
+    // generation.  The controller-manager executor remains on its own
+    // thread, so ROS services continue to be serviced.
+    if (!real_time) {
+      std::unique_lock<std::recursive_mutex> lock(sim.mtx);
+      if (m && sim.run) {
+        StepWithPlugins(m, d, plugins);
+        const char* message = Diverged(m->opt.disableflags, d);
+        if (message) {
+          sim.run = 0;
+          mju::strcpy_arr(sim.load_error, message);
+        } else {
+          sim.AddToHistory();
+        }
+      }
+      lock.unlock();
+      std::this_thread::yield();
+      continue;
+    }
+
+    // sleep for 1 ms or yield, to let the render thread run
     if (sim.run && sim.busywait) {
       std::this_thread::yield();
     } else {
@@ -375,7 +511,7 @@ void PhysicsLoop(mj::Simulate& sim,
             sim.speed_changed = false;
 
             // run single step, let next iteration deal with timing
-            mj_step(m, d);
+            StepWithPlugins(m, d, plugins);
             const char* message = Diverged(m->opt.disableflags, d);
             if (message) {
               sim.run = 0;
@@ -405,20 +541,8 @@ void PhysicsLoop(mj::Simulate& sim,
               // inject noise
               sim.InjectNoise();
 
-              // call mj_step
-              if (plugins.empty()) {
-                mj_step(m, d);
-              }
-              else {
-                for (auto& plugin : plugins) {
-                  plugin->PreUpdate(m, d);
-                }
-                mj_step1(m, d);
-                for (auto& plugin : plugins) {
-                  plugin->Update(m, d);
-                }
-                mj_step2(m, d);
-              }
+              // call mj_step with the same plugin ordering as the first step
+              StepWithPlugins(m, d, plugins);
 
               const char* message = Diverged(m->opt.disableflags, d);
               if (message) {
@@ -458,10 +582,14 @@ void PhysicsLoop(mj::Simulate& sim,
 void PhysicsThread(mj::Simulate* sim, rclcpp::Node::SharedPtr node,
                    rclcpp::NodeOptions node_options,
                    const char* filename,
-                   const std::vector<std::string>&physics_plugin_names) {
+                   const std::vector<std::string>& physics_plugin_names,
+                   bool headless, bool real_time, double duration,
+                   bool start_paused) {
   // request loadmodel if file given (otherwise drag-and-drop)
   if (filename != nullptr) {
-    sim->LoadMessage(filename);
+    if (!headless) {
+      sim->LoadMessage(filename);
+    }
     m = LoadModel(filename, *sim);
     if (m) {
       // lock the sim mutex
@@ -470,7 +598,16 @@ void PhysicsThread(mj::Simulate* sim, rclcpp::Node::SharedPtr node,
       d = mj_makeData(m);
     }
     if (d) {
-      sim->Load(m, d, filename);
+      if (headless) {
+        // There is no render thread to consume Simulate::Load() in headless
+        // mode.  Publish the model/data pointers directly instead.
+        const std::unique_lock<std::recursive_mutex> lock(sim->mtx);
+        sim->m_ = m;
+        sim->d_ = d;
+        sim->loadrequest = 0;
+      } else {
+        sim->Load(m, d, filename);
+      }
 
       // lock the sim mutex
       const std::unique_lock<std::recursive_mutex> lock(sim->mtx);
@@ -504,11 +641,13 @@ void PhysicsThread(mj::Simulate* sim, rclcpp::Node::SharedPtr node,
     plugin->Configure(node, node_options, m, d);
   }
 
-  PhysicsLoop(*sim, physics_plugins);
+  PhysicsLoop(*sim, physics_plugins, real_time, duration, node, start_paused);
 
-  // delete everything we allocated
-  mj_deleteData(d);
-  mj_deleteModel(m);
+  // Model/data are released by the owning main thread after the embedded
+  // ros2_control plugin (and its ControllerManager/hardware objects) has
+  // been destroyed.  Releasing them here leaves dangling pointers in
+  // MujocoSystem during controller shutdown and can crash in DDS/plugin
+  // teardown.
 }
 
 //------------------------------------------ main --------------------------------------------------
@@ -540,16 +679,19 @@ int main(int argc, char** argv) {
   }
 
   // install signal handler
-  std::signal(SIGINT, [](int) {;
-    if (m) mj_deleteModel(m);
-    if (d) mj_deleteData(d);
-    physics_plugins.clear();
-    rclcpp::shutdown();
-    std::exit(0);
-  });
-
   //--------------------- set up ros node ---------------------//
-  rclcpp::init(argc, argv);
+  // Let the process handle SIGINT itself.  rclcpp's default handler shuts the
+  // global context down immediately, while the MuJoCo physics thread still
+  // owns controller-manager nodes; disabling it lets the main thread request
+  // the UI exit, join the physics thread, and only then shut ROS down.
+  rclcpp::InitOptions init_options;
+  init_options.shutdown_on_signal = false;
+  rclcpp::init(argc, argv, init_options, rclcpp::SignalHandlerOptions::None);
+  std::signal(SIGINT, [](int) {
+    if (auto* sim = active_sim.load()) {
+      sim->exitrequest.store(1);
+    }
+  });
   std::shared_ptr<rclcpp::Node> node = rclcpp::Node::make_shared(
       "mujoco_sim_ros2_node");
 
@@ -567,14 +709,26 @@ int main(int argc, char** argv) {
   node->declare_parameter("model_package", "");
   node->declare_parameter("model_file", "");
   node->declare_parameter("physics_plugins", std::vector<std::string>());
+  node->declare_parameter("headless", false);
+  node->declare_parameter("real_time", true);
+  node->declare_parameter("duration", 0.0);
+  node->declare_parameter("start_paused", false);
 
   // get parameters
   std::string model_pkg =
       node->get_parameter("model_package").get_parameter_value().get<std::string>();
   std::string model_file =
       node->get_parameter("model_file").get_parameter_value().get<std::string>();
-  std::vector<std::string> physics_plugins =
+  std::vector<std::string> physics_plugin_names =
       node->get_parameter("physics_plugins").get_parameter_value().get<std::vector<std::string>>();
+  const bool headless = node->get_parameter("headless").as_bool();
+  const bool real_time = node->get_parameter("real_time").as_bool();
+  const double duration = node->get_parameter("duration").as_double();
+  const bool start_paused = node->get_parameter("start_paused").as_bool();
+  if (!std::isfinite(duration) || duration < 0.0) {
+    std::cerr << "duration must be finite and non-negative (0 means unlimited)" << std::endl;
+    return -1;
+  }
 
   std::string package_share_path;
   try {
@@ -594,12 +748,16 @@ int main(int argc, char** argv) {
   std::cout << "model package: " << model_pkg << std::endl;
   std::cout << "model file: " << model_file << std::endl;
   std::cout << "physics plugins: " << std::endl;
-  if (physics_plugins.empty()) {
+  if (physics_plugin_names.empty()) {
     std::cout << "  - none" << std::endl;
   }
-  for (const auto &plugin : physics_plugins) {
+  for (const auto &plugin : physics_plugin_names) {
     std::cout << "  - " << plugin << std::endl;
   }
+  std::cout << "headless: " << (headless ? "true" : "false") << std::endl;
+  std::cout << "real_time: " << (real_time ? "true" : "false") << std::endl;
+  std::cout << "duration: " << duration << " s (simulation time)" << std::endl;
+  std::cout << "start_paused: " << (start_paused ? "true" : "false") << std::endl;
   std::cout << "========================================" << std::endl;
 
   // scan for libraries in the plugin directory to load additional plugins
@@ -615,18 +773,57 @@ int main(int argc, char** argv) {
   mjv_defaultPerturb(&pert);
 
   // simulate object encapsulates the UI
+  std::unique_ptr<mj::PlatformUIAdapter> ui_adapter;
+  if (headless) {
+    ui_adapter = std::make_unique<HeadlessUIAdapter>();
+  } else {
+    ui_adapter = std::make_unique<mj::GlfwAdapter>();
+  }
   auto sim = std::make_unique<mj::Simulate>(
-      std::make_unique<mj::GlfwAdapter>(),
+      std::move(ui_adapter),
       &cam, &opt, &pert, /* is_passive = */ false
   );
+  active_sim.store(sim.get());
 
   // start physics thread
   std::thread physicsthreadhandle(&PhysicsThread, sim.get(),
-  node, cm_node_options, model_file.c_str(), physics_plugins);
+  node, cm_node_options, model_file.c_str(), physics_plugin_names,
+  headless, real_time, duration, start_paused);
 
-  // start simulation UI loop (blocking call)
-  sim->RenderLoop();
+  // The normal mode renders on the main thread.  In headless mode there is no
+  // GLFW event loop; wait for SIGINT/ROS shutdown while the physics thread
+  // advances the model.  This keeps the same process/node ownership and makes
+  // ``headless:=true`` usable over SSH and in CI.
+  if (!headless) {
+    sim->RenderLoop();
+  } else {
+    while (!sim->exitrequest.load() && rclcpp::ok()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    sim->exitrequest.store(1);
+  }
+  active_sim.store(nullptr);
   physicsthreadhandle.join();
 
+  // Release the embedded plugin and ROS nodes while the context is still
+  // valid.  Keep the plugin objects alive until after the physics thread has
+  // joined; the plugin owns the ControllerManager and its executor.  The
+  // loader itself must outlive those objects, otherwise class_loader can try
+  // to unload a library while controller instances are still on the heap.
+  physics_plugins.clear();
+  physics_plugin_loader.reset();
+  if (d) {
+    mj_deleteData(d);
+    d = nullptr;
+  }
+  if (m) {
+    mj_deleteModel(m);
+    m = nullptr;
+  }
+  sim.reset();
+  node.reset();
+  if (rclcpp::ok()) {
+    rclcpp::shutdown();
+  }
   return 0;
 }
